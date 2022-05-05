@@ -21,7 +21,7 @@ class MovieList(APIView):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.data)
+            return Response(serializer.errors)
 
 class MovieDetailsView(APIView):
     def get(self,request,pk):
