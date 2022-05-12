@@ -6,18 +6,21 @@ from wsgiref.validate import validator
 from rest_framework import serializers
 from watchlists.models import WatchList,StreamingPlatform
 
-
-class StreamingPlatformSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StreamingPlatform
-        fields = '__all__'
-
-
 class WatchListSerializer(serializers.ModelSerializer):
     # len_title = serializers.SerializerMethodField()
     class Meta:
         model = WatchList
         fields = '__all__'
+
+
+class StreamingPlatformSerializer(serializers.ModelSerializer):
+    watchlist = WatchListSerializer(many=True, read_only=True)
+    class Meta:
+        model = StreamingPlatform
+        fields = '__all__'
+
+
+
 
     # def get_len_title(self,object):
     #     return len(object.title)
