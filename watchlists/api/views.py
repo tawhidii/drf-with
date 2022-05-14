@@ -1,4 +1,4 @@
-
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 # from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -11,39 +11,66 @@ from watchlists.api.serializers import(
 from rest_framework.views import APIView
 from rest_framework import mixins
 from rest_framework import generics
+from rest_framework import viewsets
 
 
-class StreamingPlatformListView(APIView):
-    def get(self,request):
-        streams = StreamingPlatform.objects.all()
-        serializer = StreamingPlatformSerializer(streams,many=True,context={'request': request})
-        return Response(serializer.data)
 
-    def post(self,request):
-        serializer = StreamingPlatformSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message':'Successfully created !!'},status=status.HTTP_201_CREATED)
-        return Response(serializer.errors)
 
-class StreamingPlatformDetailsView(APIView):
 
-    def get(self,request,pk):
-        try:
-            stream = StreamingPlatform.objects.get(pk=pk)
-        except StreamingPlatform.DoesNotExist:
-            return Response({'error': f'{pk} not found !!'},status=status.HTTP_404_NOT_FOUND)
-        serializer = StreamingPlatformSerializer(stream,context={'request': request})
-        return Response(serializer.data)
+# Example of viewset
+class SteamingPlatformView(viewsets.ModelViewSet):
+    queryset = StreamingPlatform.objects.all()
+    serializer_class = StreamingPlatformSerializer
     
-    def put(self,request,pk):
-        stream = StreamingPlatform.objects.get(pk=pk)
-        serializer = StreamingPlatformSerializer(stream,data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
+
+
+
+    # For ViewSet only 
+    # def list(self, request):
+    #     queryset = StreamingPlatform.objects.all()
+    #     serializer = StreamingPlatformSerializer(queryset, many=True)
+    #     return Response(serializer.data)
+    
+
+    # def retrieve(self, request, pk=None):
+    #     queryset = StreamingPlatform.objects.all()
+    #     platform = get_object_or_404(queryset, pk=pk)
+    #     serializer = StreamingPlatformSerializer(platform)
+    #     return Response(serializer.data)
+    
+
+
+# class StreamingPlatformListView(APIView):
+#     def get(self,request):
+#         streams = StreamingPlatform.objects.all()
+#         serializer = StreamingPlatformSerializer(streams,many=True,context={'request': request})
+#         return Response(serializer.data)
+
+#     def post(self,request):
+#         serializer = StreamingPlatformSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({'message':'Successfully created !!'},status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors)
+
+# class StreamingPlatformDetailsView(APIView):
+
+#     def get(self,request,pk):
+#         try:
+#             stream = StreamingPlatform.objects.get(pk=pk)
+#         except StreamingPlatform.DoesNotExist:
+#             return Response({'error': f'{pk} not found !!'},status=status.HTTP_404_NOT_FOUND)
+#         serializer = StreamingPlatformSerializer(stream,context={'request': request})
+#         return Response(serializer.data)
+    
+#     def put(self,request,pk):
+#         stream = StreamingPlatform.objects.get(pk=pk)
+#         serializer = StreamingPlatformSerializer(stream,data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         else:
+#             return Response(serializer.errors)
 
 
 
@@ -127,7 +154,6 @@ class ReviewCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         pk = self.kwargs.get('pk')
         watchlist = WatchList.objects.get(pk=pk)
-        
         serializer.save(watchlist=watchlist)
 
 
