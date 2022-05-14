@@ -2,16 +2,21 @@
 from rest_framework import status
 # from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from watchlists.models import WatchList,StreamingPlatform
-from watchlists.api.serializers import WatchListSerializer,StreamingPlatformSerializer
-
+from watchlists.models import WatchList,StreamingPlatform,Review
+from watchlists.api.serializers import(
+    WatchListSerializer,
+    StreamingPlatformSerializer,
+    ReviewSerializer
+    )
 from rest_framework.views import APIView
+from rest_framework import mixins
+from rest_framework import generics
 
 
 class StreamingPlatformListView(APIView):
     def get(self,request):
         streams = StreamingPlatform.objects.all()
-        serializer = StreamingPlatformSerializer(streams,many=True)
+        serializer = StreamingPlatformSerializer(streams,many=True,context={'request': request})
         return Response(serializer.data)
 
     def post(self,request):
@@ -28,7 +33,7 @@ class StreamingPlatformDetailsView(APIView):
             stream = StreamingPlatform.objects.get(pk=pk)
         except StreamingPlatform.DoesNotExist:
             return Response({'error': f'{pk} not found !!'},status=status.HTTP_404_NOT_FOUND)
-        serializer = StreamingPlatformSerializer(stream)
+        serializer = StreamingPlatformSerializer(stream,context={'request': request})
         return Response(serializer.data)
     
     def put(self,request,pk):
@@ -42,7 +47,6 @@ class StreamingPlatformDetailsView(APIView):
 
 
 
-# CLASS BASED VIEW #
 class WatchListView(APIView):
     def get(self,request):
         movies = WatchList.objects.all()
@@ -53,7 +57,11 @@ class WatchListView(APIView):
         serializer = WatchListSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            response = {
+                'message' : 'Created Successfully !!',
+                'data': serializer.data
+            }
+            return Response(response)
         else:
             return Response(serializer.errors)
 
@@ -86,7 +94,41 @@ class WatchListDetailsView(APIView):
 
 
 
+# Code with generic view 
+# class ReviewListView(mixins.ListModelMixin,
+#                     mixins.CreateModelMixin,
+#                     generics.GenericAPIView):
+#     queryset = Review.objects.all()
+#     serializer_class = ReviewSerializer
+    
+#     def get(self,request,*args,**kwargs):
+#         return self.list(request,*args,**kwargs)
 
+#     def post(self, request, *args, **kwargs):
+#         return self.create(request, *args, **kwargs)
+
+# concrete view 
+class ReviewListView(generics.ListAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        return Review.objects.filter(watchlist=self.kwargs['pk'])
+
+
+class ReviewDetailsView(generics.RetrieveDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+
+class ReviewCreateView(generics.CreateAPIView):
+    serializer_class = ReviewSerializer
+
+    def perform_create(self, serializer):
+        pk = self.kwargs.get('pk')
+        watchlist = WatchList.objects.get(pk=pk)
+        
+        serializer.save(watchlist=watchlist)
 
 
 

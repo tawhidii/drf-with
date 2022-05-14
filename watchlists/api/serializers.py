@@ -1,19 +1,26 @@
 
-from dataclasses import field
-from re import S
-from turtle import title
-from wsgiref.validate import validator
+
 from rest_framework import serializers
-from watchlists.models import WatchList,StreamingPlatform
+from watchlists.models import WatchList,StreamingPlatform,Review
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        exclude = ['watchlist']
 
 class WatchListSerializer(serializers.ModelSerializer):
     # len_title = serializers.SerializerMethodField()
+    review = ReviewSerializer(many=True,read_only=True)
     class Meta:
         model = WatchList
         fields = '__all__'
 
 
-class StreamingPlatformSerializer(serializers.ModelSerializer):
+class StreamingPlatformSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='stream-details'
+        
+    )
     watchlist = WatchListSerializer(many=True, read_only=True)
     class Meta:
         model = StreamingPlatform
