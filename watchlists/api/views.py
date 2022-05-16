@@ -13,6 +13,9 @@ from rest_framework.views import APIView
 from rest_framework import mixins
 from rest_framework import generics
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from watchlists.api.permissions import ReviewIsUserOrReadOnly
+
 
 
 
@@ -20,6 +23,7 @@ from rest_framework import viewsets
 
 # Example of viewset
 class SteamingPlatformView(viewsets.ModelViewSet):
+   
     queryset = StreamingPlatform.objects.all()
     serializer_class = StreamingPlatformSerializer
     
@@ -145,7 +149,8 @@ class ReviewListView(generics.ListAPIView):
         return Review.objects.filter(watchlist=self.kwargs['pk'])
 
 
-class ReviewDetailsView(generics.RetrieveDestroyAPIView):
+class ReviewDetailsView(generics.RetrieveUpdateAPIView):
+    permission_classes =[ReviewIsUserOrReadOnly]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
