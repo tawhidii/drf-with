@@ -157,6 +157,7 @@ class ReviewDetailsView(generics.RetrieveUpdateAPIView):
 
 
 class ReviewCreateView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = ReviewSerializer
 
     def perform_create(self, serializer):
@@ -169,7 +170,6 @@ class ReviewCreateView(generics.CreateAPIView):
         if review_queryset.exists():
             raise ValidationError({'message':'You already posted review for this !!'})
 
-        
         if watchlist.avg_rating == 0:
             watchlist.avg_rating = serializer.validated_data.get('rating')
         else:
