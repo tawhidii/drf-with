@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from rest_framework import mixins
 from rest_framework import generics
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from watchlists.api.permissions import ReviewIsUserOrReadOnly
 
 
@@ -142,6 +142,7 @@ class WatchListDetailsView(APIView):
 
 # concrete view 
 class ReviewListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
@@ -150,7 +151,7 @@ class ReviewListView(generics.ListAPIView):
 
 
 class ReviewDetailsView(generics.RetrieveUpdateAPIView):
-    permission_classes =[ReviewIsUserOrReadOnly]
+    permission_classes =[IsAuthenticated]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
@@ -159,12 +160,22 @@ class ReviewCreateView(generics.CreateAPIView):
     serializer_class = ReviewSerializer
 
     def perform_create(self, serializer):
+        print(serializer.validated_data.get('rating'))
         pk = self.kwargs.get('pk')
         watchlist = WatchList.objects.get(pk=pk)
         review_user = self.request.user
         review_queryset = Review.objects.filter(watchlist=watchlist,review_user=review_user)
+        
         if review_queryset.exists():
             raise ValidationError({'message':'You already posted review for this !!'})
+
+        
+        if watchlist.avg_rating == 0:
+            watchlist.avg_rating = serializer.validated_data.get('rating')
+        else:
+            watchlist.avg_rating = (watchlist.avg_rating + serializer.validated_data['rating'])/2
+        watchlist.total_rating += 1 
+        watchlist.save()
         serializer.save(watchlist=watchlist,review_user=review_user)
 
 
