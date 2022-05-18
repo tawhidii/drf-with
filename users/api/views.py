@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-
+# from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from users.api.serializers import RegistrationSerializer
 
 
@@ -12,11 +12,15 @@ def register_user(request):
         data = {}
         if serializer.is_valid():
             account = serializer.save()
-            user_token = Token.objects.get(user=account).key
+            # user_token = Token.objects.get(user=account).key
+            refresh = RefreshToken.for_user(account)
             data['response'] = "Registration Successful !!"
             data['username'] = account.username
             data['email'] = account.email
-            data['token'] = user_token
+            data['token'] = {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
             return Response(data)
         else:
             return Response(serializer.errors)
